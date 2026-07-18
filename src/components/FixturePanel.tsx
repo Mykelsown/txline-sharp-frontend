@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import type { Fixture, AgentStatus } from "../types";
 
 interface Props {
@@ -8,7 +8,12 @@ interface Props {
   onSelect: (id: number) => void;
 }
 
-export function FixturePanel({ fixtures, status, selectedId, onSelect }: Props) {
+export function FixturePanel({
+  fixtures,
+  status,
+  selectedId,
+  onSelect,
+}: Props) {
   return (
     <aside style={styles.panel}>
       <div style={styles.header}>
@@ -29,10 +34,21 @@ export function FixturePanel({ fixtures, status, selectedId, onSelect }: Props) 
 
       <div style={styles.agentInfo}>
         <div style={styles.infoHeader}>AGENT CONFIG</div>
-        <InfoRow label="Wallet" value={`${status.wallet.slice(0, 4)}...${status.wallet.slice(-4)}`} mono />
+        <InfoRow
+          label="Wallet"
+          value={`${status.wallet.slice(0, 4)}...${status.wallet.slice(-4)}`}
+          mono
+        />
         <InfoRow label="Poll" value={`${status.poll_interval_sec}s`} mono />
-        <InfoRow label="Threshold" value={`${(status.movement_threshold * 100).toFixed(0)}%`} mono />
-        <InfoRow label="Activated" value={new Date(status.activated_at).toLocaleDateString()} />
+        <InfoRow
+          label="Threshold"
+          value={`${(status.movement_threshold * 100).toFixed(0)}%`}
+          mono
+        />
+        <InfoRow
+          label="Activated"
+          value={new Date(status.activated_at).toLocaleDateString()}
+        />
         <InfoRow
           label="AI Layer"
           value={status.ai_interpreter_enabled ? "Enabled" : "Disabled"}
@@ -65,10 +81,18 @@ function FixtureCard({
   selected: boolean;
   onSelect: () => void;
 }) {
+  const [, setTick] = useState(0);
   const kickoff = new Date(fixture.kickoff);
   const now = new Date();
-  const minutesUntil = Math.floor((kickoff.getTime() - now.getTime()) / 60000);
-  const isLive = fixture.status === "live";
+  const isLive = fixture.status === "live" || kickoff < now;
+  const minutesElapsed = Math.floor((now.getTime() - kickoff.getTime()) / 60000);
+  const displayMinute = Math.min(minutesElapsed, 90);
+
+  useEffect(() => {
+    if (!isLive) return;
+    const id = setInterval(() => setTick((t) => t + 1), 60000);
+    return () => clearInterval(id);
+  }, [isLive]);
 
   return (
     <button
@@ -89,8 +113,13 @@ function FixtureCard({
           {isLive ? "● LIVE" : fixture.status.toUpperCase()}
         </span>
         {isLive && (
-          <span style={styles.liveMinutes}>
-            {kickoff.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} UTC
+          <span style={{
+            fontFamily: "var(--mono)",
+            fontSize: 12,
+            fontWeight: 700,
+            color: "var(--accent)",
+          }}>
+            {displayMinute}'
           </span>
         )}
       </div>
@@ -101,15 +130,41 @@ function FixtureCard({
         <span style={styles.team}>{fixture.away_team}</span>
       </div>
 
+      {isLive && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+          <div style={{
+            height: 3,
+            background: "var(--border)",
+            borderRadius: 2,
+            overflow: "hidden",
+          }}>
+            <div style={{
+              height: "100%",
+              width: `${Math.min((displayMinute / 90) * 100, 100)}%`,
+              background: "var(--accent)",
+              borderRadius: 2,
+              transition: "width 1s linear",
+            }} />
+          </div>
+          <div style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginTop: 2,
+          }}>
+            <span style={{ fontFamily: "var(--mono)", fontSize: 9, color: "var(--text-3)" }}>0'</span>
+            <span style={{ fontFamily: "var(--mono)", fontSize: 9, color: "var(--text-3)" }}>45'</span>
+            <span style={{ fontFamily: "var(--mono)", fontSize: 9, color: "var(--text-3)" }}>90'</span>
+          </div>
+        </div>
+      )}
+
       <div style={styles.cardBottom}>
-        {!isLive && minutesUntil > 0 ? (
+        {!isLive ? (
           <span style={styles.kickoffTime}>
             KO: {kickoff.toLocaleDateString()} {kickoff.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} UTC
           </span>
         ) : (
-          <span style={styles.kickoffTime}>
-            World Cup 2026 · Semi-final
-          </span>
+          <span style={styles.kickoffTime}>World Cup 2026 · Semi-final</span>
         )}
       </div>
     </button>
@@ -130,11 +185,13 @@ function InfoRow({
   return (
     <div style={styles.infoRow}>
       <span style={styles.infoLabel}>{label}</span>
-      <span style={{
-        ...styles.infoValue,
-        fontFamily: mono ? "var(--mono)" : "var(--sans)",
-        color: accent ? "var(--accent)" : "var(--text-2)",
-      }}>
+      <span
+        style={{
+          ...styles.infoValue,
+          fontFamily: mono ? "var(--mono)" : "var(--sans)",
+          color: accent ? "var(--accent)" : "var(--text-2)",
+        }}
+      >
         {value}
       </span>
     </div>
@@ -286,5 +343,10 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 10,
     color: "var(--text-2)",
     fontFamily: "var(--mono)",
+  },
+  progressWrapper: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 0,
   },
 };
