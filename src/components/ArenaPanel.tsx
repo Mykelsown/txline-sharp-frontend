@@ -13,7 +13,10 @@ export function ArenaPanel({ results }: Props) {
   const agentB = summaries.find((s) => s.agent_name.includes("Contrarian"));
 
   const recentDecisions = [...decisions]
-    .sort((a, b) => new Date(b.decided_at).getTime() - new Date(a.decided_at).getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.decided_at).getTime() - new Date(a.decided_at).getTime(),
+    )
     .slice(0, 8);
 
   return (
@@ -25,7 +28,9 @@ export function ArenaPanel({ results }: Props) {
 
       {/* Agent comparison */}
       <div style={styles.agents}>
-        {agentA && <AgentCard summary={agentA} color="var(--accent)" label="A" />}
+        {agentA && (
+          <AgentCard summary={agentA} color="var(--accent)" label="A" />
+        )}
         {agentB && <AgentCard summary={agentB} color="var(--warn)" label="B" />}
       </div>
 
@@ -59,18 +64,18 @@ export function ArenaPanel({ results }: Props) {
         {recentDecisions.length === 0 ? (
           <div style={styles.empty}>
             <span style={styles.emptyText}>Waiting for signals...</span>
-            <span style={styles.emptySubtext}>Agents activate when odds move</span>
+            <span style={styles.emptySubtext}>
+              Agents activate when odds move
+            </span>
           </div>
         ) : (
-          recentDecisions.map((d, i) => (
-            <DecisionRow key={i} decision={d} />
-          ))
+          recentDecisions.map((d, i) => <DecisionRow key={i} decision={d} />)
         )}
       </div>
 
       <div style={styles.disclaimer}>
-        Hypothetical P&L only. Simulated on historical signal data.
-        Not financial advice.
+        Hypothetical P&L only. Simulated on historical signal data. Not
+        financial advice.
       </div>
     </aside>
   );
@@ -81,7 +86,16 @@ function AgentCard({
   color,
   label,
 }: {
-  summary: { agent_name: string; total_signals: number; backed: number; skipped: number; settled: number; won: number; total_pnl: number; roi_pct: number };
+  summary: {
+    agent_name: string;
+    total_signals: number;
+    backed: number;
+    skipped: number;
+    settled: number;
+    won: number;
+    total_pnl: number;
+    roi_pct: number;
+  };
   color: string;
   label: string;
 }) {
@@ -90,7 +104,9 @@ function AgentCard({
   return (
     <div style={{ ...styles.agentCard, borderColor: `${color}44` }}>
       <div style={styles.agentHeader}>
-        <div style={{ ...styles.agentLabel, background: color, color: "#0A0E17" }}>
+        <div
+          style={{ ...styles.agentLabel, background: color, color: "#0A0E17" }}
+        >
           {label}
         </div>
         <span style={styles.agentName}>
@@ -107,22 +123,28 @@ function AgentCard({
 
       <div style={styles.pnlRow}>
         <span style={styles.pnlLabel}>P&L</span>
-        <span style={{
-          ...styles.pnlValue,
-          color: pnlPositive ? "var(--accent)" : "var(--danger)",
-        }}>
-          {pnlPositive ? "+" : ""}{summary.total_pnl.toFixed(2)} USDT
+        <span
+          style={{
+            ...styles.pnlValue,
+            color: pnlPositive ? "var(--accent)" : "var(--danger)",
+          }}
+        >
+          {pnlPositive ? "+" : ""}
+          {summary.total_pnl.toFixed(2)} USDT
         </span>
       </div>
 
       {summary.settled > 0 && (
         <div style={styles.roiRow}>
           <span style={styles.roiLabel}>ROI</span>
-          <span style={{
-            ...styles.roiValue,
-            color: summary.roi_pct >= 0 ? "var(--accent)" : "var(--danger)",
-          }}>
-            {summary.roi_pct >= 0 ? "+" : ""}{summary.roi_pct.toFixed(1)}%
+          <span
+            style={{
+              ...styles.roiValue,
+              color: summary.roi_pct >= 0 ? "var(--accent)" : "var(--danger)",
+            }}
+          >
+            {summary.roi_pct >= 0 ? "+" : ""}
+            {summary.roi_pct.toFixed(1)}%
           </span>
         </div>
       )}
@@ -130,16 +152,34 @@ function AgentCard({
   );
 }
 
-function Stat({ label, value, color }: { label: string; value: string; color?: string }) {
+function Stat({
+  label,
+  value,
+  color,
+}: {
+  label: string;
+  value: string;
+  color?: string;
+}) {
   return (
     <div style={styles.stat}>
       <span style={styles.statLabel}>{label}</span>
-      <span style={{ ...styles.statValue, color: color ?? "var(--text)" }}>{value}</span>
+      <span style={{ ...styles.statValue, color: color ?? "var(--text)" }}>
+        {value}
+      </span>
     </div>
   );
 }
 
-function StrategyRow({ label, desc, color }: { label: string; desc: string; color: string }) {
+function StrategyRow({
+  label,
+  desc,
+  color,
+}: {
+  label: string;
+  desc: string;
+  color: string;
+}) {
   return (
     <div style={styles.strategyRow}>
       <div style={{ ...styles.strategyDot, background: color }} />
@@ -152,6 +192,7 @@ function StrategyRow({ label, desc, color }: { label: string; desc: string; colo
 }
 
 function DecisionRow({ decision }: { decision: Decision }) {
+  const [expanded, setExpanded] = React.useState(false);
   const isA = decision.agent_name.includes("Momentum");
   const color = isA ? "var(--accent)" : "var(--warn)";
   const time = new Date(decision.decided_at).toLocaleTimeString([], {
@@ -160,31 +201,51 @@ function DecisionRow({ decision }: { decision: Decision }) {
   });
 
   return (
-    <div style={styles.decisionRow}>
-      <div style={{ ...styles.decisionAgent, color, borderColor: `${color}44` }}>
-        {isA ? "A" : "B"}
-      </div>
-      <div style={styles.decisionInfo}>
-        <span style={{
-          ...styles.decisionType,
-          color: decision.decision_type === "SKIP" ? "var(--text-3)" : color,
-        }}>
-          {decision.decision_type}
+    <div style={{ ...styles.decisionRow, flexDirection: "column", gap: 0 }}>
+      <div
+        style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", padding: "6px 6px" }}
+        onClick={() => setExpanded((e) => !e)}
+      >
+        <div style={{ ...styles.decisionAgent, color, borderColor: `${color}44` }}>
+          {isA ? "A" : "B"}
+        </div>
+        <div style={styles.decisionInfo}>
+          <span style={{
+            ...styles.decisionType,
+            color: decision.decision_type === "SKIP" ? "var(--text-3)" : color,
+          }}>
+            {decision.decision_type}
+          </span>
+          <span style={styles.decisionTime}>{time}</span>
+        </div>
+        {decision.decision_type !== "SKIP" && (
+          <div style={styles.decisionRight}>
+            <span style={styles.decisionStake}>${decision.stake}</span>
+            {decision.settled && (
+              <span style={{
+                fontSize: 11,
+                fontFamily: "var(--mono)",
+                color: decision.won ? "var(--accent)" : "var(--danger)",
+              }}>
+                {decision.pnl >= 0 ? "+" : ""}{decision.pnl.toFixed(0)}
+              </span>
+            )}
+          </div>
+        )}
+        <span style={{ fontSize: 9, color: "var(--text-3)", marginLeft: "auto" }}>
+          {expanded ? "▲" : "▼"}
         </span>
-        <span style={styles.decisionTime}>{time}</span>
       </div>
-      {decision.decision_type !== "SKIP" && (
-        <div style={styles.decisionRight}>
-          <span style={styles.decisionStake}>${decision.stake}</span>
-          {decision.settled && (
-            <span style={{
-              fontSize: 11,
-              fontFamily: "var(--mono)",
-              color: decision.won ? "var(--accent)" : "var(--danger)",
-            }}>
-              {decision.pnl >= 0 ? "+" : ""}{decision.pnl.toFixed(0)}
-            </span>
-          )}
+      {expanded && decision.reasoning && (
+        <div style={{
+          padding: "6px 8px 8px",
+          borderTop: "1px solid var(--border)",
+          fontSize: 11,
+          color: "var(--text-2)",
+          lineHeight: 1.5,
+          fontStyle: "italic",
+        }}>
+          {decision.reasoning}
         </div>
       )}
     </div>
@@ -358,7 +419,9 @@ const styles: Record<string, React.CSSProperties> = {
   },
   decisions: {
     flex: 1,
-    overflow: "auto",
+    overflowY: "scroll",
+    overflowX: "hidden",
+    maxHeight: 320,
     display: "flex",
     flexDirection: "column",
     gap: 2,
