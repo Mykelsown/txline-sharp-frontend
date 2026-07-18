@@ -3,24 +3,20 @@ import { TopBar } from "./components/TopBar";
 import { FixturePanel } from "./components/FixturePanel";
 import { SignalFeed } from "./components/SignalFeed";
 import { ArenaPanel } from "./components/ArenaPanel";
-import {
-  mockSignals,
-  mockArenaResults,
-  mockAgentStatus,
-  mockFixtures,
-} from "./data/mock";
+import { useLiveData } from "./hooks/useLiveData";
 
 export default function App() {
   const [selectedFixtureId, setSelectedFixtureId] = useState<number | null>(null);
+  const { status, fixtures, signals, arena, liveMode, lastFetch } = useLiveData();
 
   return (
     <div style={styles.root}>
-      <TopBar status={mockAgentStatus} />
+      <TopBar status={status} liveMode={liveMode} lastFetch={lastFetch} />
 
       <div style={styles.body}>
         <FixturePanel
-          fixtures={mockFixtures}
-          status={mockAgentStatus}
+          fixtures={fixtures}
+          status={status}
           selectedId={selectedFixtureId}
           onSelect={(id) =>
             setSelectedFixtureId((prev) => (prev === id ? null : id))
@@ -28,11 +24,11 @@ export default function App() {
         />
 
         <SignalFeed
-          signals={mockSignals}
+          signals={signals}
           selectedFixtureId={selectedFixtureId}
         />
 
-        <ArenaPanel results={mockArenaResults} />
+        <ArenaPanel results={arena} />
       </div>
     </div>
   );

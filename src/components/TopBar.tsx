@@ -3,10 +3,12 @@ import type { AgentStatus } from "../types";
 
 interface Props {
   status: AgentStatus;
+  liveMode: boolean;
+  lastFetch: Date | null;
 }
 
-export function TopBar({ status }: Props) {
-  const [tick, setTick] = useState(0);
+export function TopBar({ status, liveMode, lastFetch }: Props) {
+  const [, setTick] = useState(0);
 
   useEffect(() => {
     const id = setInterval(() => setTick((t) => t + 1), 1000);
@@ -31,6 +33,30 @@ export function TopBar({ status }: Props) {
       </div>
 
       <div style={styles.right}>
+        {/* Live vs Demo mode indicator */}
+        <div style={{
+          ...styles.modeBadge,
+          background: liveMode ? "var(--accent-dim)" : "var(--warn-dim)",
+          border: `1px solid ${liveMode ? "var(--accent-glow)" : "var(--warn)44"}`,
+        }}>
+          <span style={{
+            ...styles.modeDot,
+            background: liveMode ? "var(--accent)" : "var(--warn)",
+            animation: liveMode ? "pulse-dot 1.4s ease-in-out infinite" : "none",
+          }} />
+          <span style={{
+            ...styles.modeText,
+            color: liveMode ? "var(--accent)" : "var(--warn)",
+          }}>
+            {liveMode ? "LIVE" : "DEMO"}
+          </span>
+          {lastFetch && liveMode && (
+            <span style={styles.lastFetch}>
+              {lastFetch.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+            </span>
+          )}
+        </div>
+
         {status.ai_interpreter_enabled && (
           <div style={styles.badge}>
             <span style={styles.aiBadge}>AI</span>
@@ -53,15 +79,6 @@ export function TopBar({ status }: Props) {
         <div style={styles.stat}>
           <span style={styles.statLabel}>SVC LEVEL</span>
           <span style={{ ...styles.statValue, color: "var(--accent)" }}>{status.service_level}</span>
-        </div>
-
-        <div style={styles.liveIndicator}>
-          <span style={{
-            ...styles.liveDot,
-            animation: status.is_running ? "pulse-dot 1.4s ease-in-out infinite" : "none",
-            background: status.is_running ? "var(--accent)" : "var(--text-3)",
-          }} />
-          <span style={styles.liveText}>{status.is_running ? "LIVE" : "STOPPED"}</span>
         </div>
       </div>
     </header>
@@ -115,7 +132,32 @@ const styles: Record<string, React.CSSProperties> = {
   right: {
     display: "flex",
     alignItems: "center",
-    gap: 20,
+    gap: 16,
+  },
+  modeBadge: {
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    padding: "3px 10px",
+    borderRadius: 4,
+  },
+  modeDot: {
+    width: 7,
+    height: 7,
+    borderRadius: "50%",
+    display: "inline-block",
+  },
+  modeText: {
+    fontFamily: "var(--mono)",
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: "0.1em",
+  },
+  lastFetch: {
+    fontFamily: "var(--mono)",
+    fontSize: 10,
+    color: "var(--text-3)",
+    marginLeft: 2,
   },
   badge: {
     display: "flex",
@@ -151,27 +193,5 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 14,
     fontWeight: 600,
     color: "var(--text)",
-  },
-  liveIndicator: {
-    display: "flex",
-    alignItems: "center",
-    gap: 6,
-    padding: "4px 10px",
-    background: "var(--surface-2)",
-    border: "1px solid var(--border-2)",
-    borderRadius: 4,
-  },
-  liveDot: {
-    width: 7,
-    height: 7,
-    borderRadius: "50%",
-    display: "inline-block",
-  },
-  liveText: {
-    fontFamily: "var(--mono)",
-    fontSize: 11,
-    fontWeight: 600,
-    letterSpacing: "0.1em",
-    color: "var(--text-2)",
   },
 };
