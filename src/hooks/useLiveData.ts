@@ -12,7 +12,7 @@ import {
   mockFixtures,
 } from "../data/mock";
 
-const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
+const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8081";
 const POLL_MS = 30_000; // refresh every 30 seconds
 
 // useLiveData fetches all four endpoints and refreshes on a timer.
