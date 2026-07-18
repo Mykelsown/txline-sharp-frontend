@@ -6,11 +6,13 @@ interface Props {
 }
 
 export function ArenaPanel({ results }: Props) {
-  const summaries = Object.values(results.summary);
+  const decisions = Array.isArray(results?.decisions) ? results.decisions : [];
+  const summary = results?.summary ?? {};
+  const summaries = Object.values(summary);
   const agentA = summaries.find((s) => s.agent_name.includes("Momentum"));
   const agentB = summaries.find((s) => s.agent_name.includes("Contrarian"));
 
-  const recentDecisions = [...results.decisions]
+  const recentDecisions = [...decisions]
     .sort((a, b) => new Date(b.decided_at).getTime() - new Date(a.decided_at).getTime())
     .slice(0, 8);
 
